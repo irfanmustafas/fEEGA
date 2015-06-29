@@ -129,17 +129,6 @@ std::string TCPclient::receive()
     return reply;
 }
 
-float TCPclient::interpFloat(char* buff)
-{
-    float x = (
-            (0xFF & buff[0] << 24) |
-            (0xFF & buff[1] << 16) |
-            (0xFF & buff[2] << 8)  |
-            (0xFF & buff[3]));
-
-    return x;
-}
-
 void TCPclient::get_data(float tmp[])
 {
     channel_data.read(tmp, 0);
