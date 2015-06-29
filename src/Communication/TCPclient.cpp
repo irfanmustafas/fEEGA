@@ -80,10 +80,11 @@ void TCPclient::tcp_stream()
             for (int chan = 0; chan < 8; chan++) {
                 try {
                     packet = receive();
-                    tmp[i] = std::stof(packet);
+                    //tmp[i] = std::stof(packet);
                 }
                 catch (const std::invalid_argument& ia) {
-                    std::cerr << "Invalid argument: " << ia.what() << "\n";
+                    std::cerr << "Invalid argument: " << ia.what()
+                              << " (" << packet << ")\n";
                 }
             }
 
@@ -97,16 +98,46 @@ std::string TCPclient::receive()
 {
     int size = 32;
     char buffer[size];
-    std::string reply;
+    int byte_count;
+
+    float vals[8];
+    int count = 0;
+    int t;
 
     // Receive a reply from the server
-    if (recv(sock, buffer, sizeof(buffer), 0) < 0)
+    byte_count = recv(sock, buffer, size, 0);
+    //std::cout << "Byte count: " << byte_count << std::endl;
+
+    if (byte_count < 0)
     {
         std::cout << "Receive failed..." << std::endl;
     }
 
-    reply = buffer;
+    for (int i = 0; count < 8; i += 4, count++) {
+        t =
+                (buffer[i+3])       +
+                (buffer[i+2] << 8)  +
+                (buffer[i+1] << 16) +
+                (buffer[i]   << 24);
+
+        //vals[count] = *(float*)&t;
+        vals[count] = *reinterpret_cast<float*>(&t);
+        std::cout << "Val[" << count << "] " << vals[count] << std::endl;
+    }
+    std::cout << std::endl;
+
     return reply;
+}
+
+float TCPclient::interpFloat(char* buff)
+{
+    float x = (
+            (0xFF & buff[0] << 24) |
+            (0xFF & buff[1] << 16) |
+            (0xFF & buff[2] << 8)  |
+            (0xFF & buff[3]));
+
+    return x;
 }
 
 void TCPclient::get_data(float tmp[])

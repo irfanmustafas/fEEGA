@@ -24,6 +24,7 @@ class TCPclient
 
     private:
         void tcp_stream();
+        float interpFloat(char*);
         std::string receive();
 
         RingBuffer<float> channel_data;
