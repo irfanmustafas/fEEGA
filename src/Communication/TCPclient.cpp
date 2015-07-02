@@ -4,7 +4,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <thread>
+//#include <thread>
 
 // Debugging purposes
 #include <iostream>
@@ -20,8 +20,6 @@ bool TCPclient::conn(std::string address, int port)
     {
         perror("Could not create socket");
     }
-
-    //std::cout << "Created socket..." << std::endl;
 
     // Setup ip structure
     server.sin_addr.s_addr = inet_addr(address.c_str());
@@ -42,7 +40,7 @@ bool TCPclient::conn(std::string address, int port)
 
 bool TCPclient::close()
 {
-    //server.close();
+    //close(server);
 }
 
 bool TCPclient::send_data(string data)
@@ -60,11 +58,13 @@ bool TCPclient::send_data(string data)
 
 void TCPclient::start_stream()
 {
+    run_stream = true;
     stream_thread = std::thread(&TCPclient::tcp_stream, this);
 }
 
 void TCPclient::stop_stream()
 {
+    run_stream = false;
     stream_thread.join();
 }
 
@@ -72,7 +72,7 @@ void TCPclient::tcp_stream()
 {
     float tmp_vals[RANK];
 
-    while (true)
+    while (run_stream)
     {
         for (int i = 0; i < 512; i++) {
             // Store recieved packet in channel_data
@@ -89,9 +89,10 @@ void TCPclient::tcp_stream()
             channel_data.write(tmp_vals);
         }
     }
+    std::cout << "Stream finished\n";
 }
 
-void TCPclient::receive(float vals[], int vals_size)
+bool TCPclient::receive(float vals[], int vals_size)
 {
     unsigned char buffer[vals_size*4];
     int byte_count;
@@ -119,6 +120,8 @@ void TCPclient::receive(float vals[], int vals_size)
 
         //std::cout << "Val[" << count << "] " << vals[count] << std::endl;
     }
+
+    return true;
 }
 
 void TCPclient::get_data(float tmp[])

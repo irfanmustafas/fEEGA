@@ -1,8 +1,9 @@
 #include <string>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+//#include <sys/socket.h>
+//#include <arpa/inet.h>
 #include <netdb.h>
 #include <thread>
+#include <atomic>
 
 #include "ring_buffer.hpp"
 
@@ -25,7 +26,7 @@ class TCPclient
     private:
         void tcp_stream();
         float interpFloat(char*);
-        void receive(float vals[], int vals_size);
+        bool receive(float vals[], int vals_size);
 
         RingBuffer<float> channel_data;
         int sock;
@@ -33,4 +34,5 @@ class TCPclient
         std::string address;
         struct sockaddr_in server;
         std::thread stream_thread;
+        std::atomic<bool> run_stream;
 };
