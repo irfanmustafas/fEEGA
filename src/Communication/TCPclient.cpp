@@ -4,7 +4,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-//#include <thread>
+#include <thread>
 
 // Debugging purposes
 #include <iostream>
@@ -70,63 +70,55 @@ void TCPclient::stop_stream()
 
 void TCPclient::tcp_stream()
 {
-    float tmp[RANK];
-    std::string packet;
+    float tmp_vals[RANK];
 
     while (true)
     {
         for (int i = 0; i < 512; i++) {
             // Store recieved packet in channel_data
-            for (int chan = 0; chan < 8; chan++) {
+            for (int chan = 0; chan < RANK; chan++) {
                 try {
-                    packet = receive();
-                    //tmp[i] = std::stof(packet);
+                    receive(tmp_vals, RANK);
                 }
                 catch (const std::invalid_argument& ia) {
-                    std::cerr << "Invalid argument: " << ia.what()
-                              << " (" << packet << ")\n";
+                    std::cerr << "Invalid argument: " << ia.what();
                 }
             }
 
             //std::lock_guard<std::mutex> guard(mx);
-            channel_data.write(tmp);
+            channel_data.write(tmp_vals);
         }
     }
 }
 
-std::string TCPclient::receive()
+void TCPclient::receive(float vals[], int vals_size)
 {
-    int size = 32;
-    char buffer[size];
+    unsigned char buffer[vals_size*4];
     int byte_count;
 
-    float vals[8];
     int count = 0;
-    int t;
+    char* ptr = nullptr;
 
     // Receive a reply from the server
-    byte_count = recv(sock, buffer, size, 0);
-    //std::cout << "Byte count: " << byte_count << std::endl;
+    byte_count = recv(sock, buffer, vals_size, 0);
 
     if (byte_count < 0)
     {
         std::cout << "Receive failed..." << std::endl;
     }
 
+    // Convert to little endian and transfer populate float vector
     for (int i = 0; count < 8; i += 4, count++) {
-        t =
-                (buffer[i+3])       +
-                (buffer[i+2] << 8)  +
-                (buffer[i+1] << 16) +
-                (buffer[i]   << 24);
 
-        //vals[count] = *(float*)&t;
-        vals[count] = *reinterpret_cast<float*>(&t);
-        std::cout << "Val[" << count << "] " << vals[count] << std::endl;
+        ptr = (char*)(vals + count);
+
+        ptr[3] = buffer[i];
+        ptr[2] = buffer[i+1];
+        ptr[1] = buffer[i+2];
+        ptr[0] = buffer[i+3];
+
+        //std::cout << "Val[" << count << "] " << vals[count] << std::endl;
     }
-    std::cout << std::endl;
-
-    return reply;
 }
 
 void TCPclient::get_data(float tmp[])
