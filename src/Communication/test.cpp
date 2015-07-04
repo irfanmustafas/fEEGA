@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "TCPclient.h"
 
 using namespace std;
@@ -12,14 +13,19 @@ int main() {
     if (c.conn(host, 12345))
     {
         c.start_stream();
+        cout << "Started stream\n";
+        cin.ignore();
+        cout << "Thanks for your input\n";
         c.stop_stream();
 
+        cout << "Retrieving data...\n";
         c.get_data(tmp);
 
+        cout << scientific << setprecision(7);
         for (int i = 0; i < 512; i++) {
-            cout << tmp[i];
+            cout << setw(15) << tmp[i];
 
-            if (i % 10 == 0)
+            if (i % 8 == 0)
                 cout << endl;
         }
     }
