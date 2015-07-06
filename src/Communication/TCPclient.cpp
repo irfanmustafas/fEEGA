@@ -74,20 +74,19 @@ void TCPclient::tcp_stream()
 
     while (run_stream)
     {
-        for (int i = 0; i < 512; i++) {
-            // Store recieved packet in channel_data
-            for (int chan = 0; chan < RANK; chan++) {
-                try {
-                    receive(tmp_vals, RANK);
-                }
-                catch (const std::invalid_argument& ia) {
-                    std::cerr << "Invalid argument: " << ia.what();
-                }
+        // Store recieved packet in channel_data
+        for (int chan = 0; chan < RANK; chan++) {
+            try {
+                receive(tmp_vals, RANK);
             }
-
-            //std::lock_guard<std::mutex> guard(mx);
-            channel_data.write(tmp_vals);
+            catch (const std::invalid_argument& ia) {
+                std::cerr << "Invalid argument: " << ia.what();
+            }
+            //std::cout << tmp_vals[chan] << "  ";
         }
+        //std::cout << std::endl;
+
+        channel_data.write(tmp_vals);
     }
     std::cout << "Stream finished\n";
 }
@@ -109,7 +108,7 @@ bool TCPclient::receive(float vals[], int vals_size)
     }
 
     // Convert to little endian and transfer populate float vector
-    for (int i = 0; count < 8; i += 4, count++) {
+    for (int i = 0; count < vals_size; i += 4, count++) {
 
         ptr = (char*)(vals + count);
 
@@ -118,7 +117,7 @@ bool TCPclient::receive(float vals[], int vals_size)
         ptr[1] = buffer[i+2];
         ptr[0] = buffer[i+3];
 
-        //std::cout << "Val[" << count << "] " << vals[count] << std::endl;
+        std::cout << "Val[" << count << "] " << vals[count] << std::endl;
     }
 
     return true;

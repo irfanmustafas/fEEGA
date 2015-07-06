@@ -25,8 +25,12 @@ public:
         std::cout << "Cur pos: " << cur_pos << std::endl;
 
         // Need to assert that sample size is correct
-        for (int i = 0; i < _num_channels; i++)
+        //std::cout << "Ring add: ";
+        for (int i = 0; i < _num_channels; i++) {
+            //std::cout << sample[i] << ", ";
             channel_data[cur_pos][i] = sample[i];
+        }
+        //std::cout << std::endl;
 
         // Update current position
         cur_pos = (cur_pos + 1) % _buffer_size;
